@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -58,10 +59,23 @@ func newOpencodeSession(ctx context.Context, cmd, workDir, model, mode, resumeID
 }
 
 func (s *opencodeSession) Send(prompt string, images []core.ImageAttachment, files []core.FileAttachment) error {
+	var fileArgs []string
+
 	if len(files) > 0 {
 		filePaths := core.SaveFilesToDisk(s.workDir, files)
 		prompt = core.AppendFileRefs(prompt, filePaths)
+		for _, fp := range filePaths {
+			fileArgs = append(fileArgs, "-f", fp)
+		}
 	}
+
+	if len(images) > 0 {
+		imagePaths := s.saveImagesToDisk(images)
+		for _, imgPath := range imagePaths {
+			fileArgs = append(fileArgs, "-f", imgPath)
+		}
+	}
+
 	if !s.alive.Load() {
 		return fmt.Errorf("session is closed")
 	}
@@ -83,6 +97,12 @@ func (s *opencodeSession) Send(prompt string, images []core.ImageAttachment, fil
 
 	// Enable thinking blocks
 	args = append(args, "--thinking")
+
+	// Append file arguments
+	args = append(args, fileArgs...)
+
+	// Add -- separator before prompt (required when using -f flags)
+	args = append(args, "--")
 
 	// Append prompt as positional arg
 	args = append(args, prompt)
@@ -405,4 +425,45 @@ func truncate(s string, maxRunes int) string {
 		return s
 	}
 	return string([]rune(s)[:maxRunes]) + "..."
+}
+
+// saveImagesToDisk saves images to workDir/.cc-connect/attachments/
+// and returns the list of absolute file paths.
+func (s *opencodeSession) saveImagesToDisk(images []core.ImageAttachment) []string {
+	if len(images) == 0 {
+		return nil
+	}
+	attachDir := filepath.Join(s.workDir, ".cc-connect", "attachments")
+	if err := os.MkdirAll(attachDir, 0o755); err != nil {
+		slog.Warn("saveImagesToDisk: mkdir failed", "dir", attachDir, "error", err)
+	}
+
+	var paths []string
+	for i, img := range images {
+		ext := getImageExt(img.MimeType)
+		fname := fmt.Sprintf("image_%d_%d%s", time.Now().UnixMilli(), i, ext)
+		fpath := filepath.Join(attachDir, fname)
+		if err := os.WriteFile(fpath, img.Data, 0o644); err != nil {
+			slog.Error("saveImagesToDisk: write failed", "error", err)
+			continue
+		}
+		paths = append(paths, fpath)
+	}
+	return paths
+}
+
+// getImageExt returns file extension for a MIME type.
+func getImageExt(mimeType string) string {
+	switch mimeType {
+	case "image/png":
+		return ".png"
+	case "image/jpeg":
+		return ".jpg"
+	case "image/gif":
+		return ".gif"
+	case "image/webp":
+		return ".webp"
+	default:
+		return ".png"
+	}
 }
