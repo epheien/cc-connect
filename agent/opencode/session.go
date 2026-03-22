@@ -80,6 +80,12 @@ func (s *opencodeSession) Send(prompt string, images []core.ImageAttachment, fil
 		return fmt.Errorf("session is closed")
 	}
 
+	// If prompt is empty but there are images/files, add a default message
+	// because opencode requires at least a message or command
+	if prompt == "" && (len(images) > 0 || len(files) > 0) {
+		prompt = "Please analyze the attached file(s)."
+	}
+
 	chatID := s.CurrentSessionID()
 	isResume := chatID != ""
 
