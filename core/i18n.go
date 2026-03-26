@@ -266,6 +266,7 @@ const (
 	MsgStatusQuiet      MsgKey = "status_quiet"
 	MsgStatusSessionKey MsgKey = "status_session_key"
 	MsgStatusUserID     MsgKey = "status_user_id"
+	MsgStatusRunning    MsgKey = "status_running"
 	MsgQuietOnShort     MsgKey = "quiet_on_short"
 	MsgQuietOffShort    MsgKey = "quiet_off_short"
 
@@ -1720,35 +1721,35 @@ var messages = map[MsgKey]map[Language]string{
 			"Platforms: %s\n" +
 			"Uptime: %s\n" +
 			"Language: %s\n" +
-			"%s" + "%s" + "%s" + "%s" + "%s",
+			"%s" + "%s" + "%s" + "%s" + "%s" + "%s",
 		LangChinese: "cc-connect 状态\n\n" +
 			"项目: %s\n" +
 			"Agent: %s\n" +
 			"平台: %s\n" +
 			"运行时间: %s\n" +
 			"语言: %s\n" +
-			"%s" + "%s" + "%s" + "%s" + "%s",
+			"%s" + "%s" + "%s" + "%s" + "%s" + "%s",
 		LangTraditionalChinese: "cc-connect 狀態\n\n" +
 			"項目: %s\n" +
 			"Agent: %s\n" +
 			"平台: %s\n" +
 			"運行時間: %s\n" +
 			"語言: %s\n" +
-			"%s" + "%s" + "%s" + "%s" + "%s",
+			"%s" + "%s" + "%s" + "%s" + "%s" + "%s",
 		LangJapanese: "cc-connect ステータス\n\n" +
 			"プロジェクト: %s\n" +
 			"エージェント: %s\n" +
 			"プラットフォーム: %s\n" +
 			"稼働時間: %s\n" +
 			"言語: %s\n" +
-			"%s" + "%s" + "%s" + "%s" + "%s",
+			"%s" + "%s" + "%s" + "%s" + "%s" + "%s",
 		LangSpanish: "Estado de cc-connect\n\n" +
 			"Proyecto: %s\n" +
 			"Agente: %s\n" +
 			"Plataformas: %s\n" +
 			"Tiempo activo: %s\n" +
 			"Idioma: %s\n" +
-			"%s" + "%s" + "%s" + "%s" + "%s",
+			"%s" + "%s" + "%s" + "%s" + "%s" + "%s",
 	},
 	MsgModelCurrent: {
 		LangEnglish:            "Current model: %s",
@@ -1967,6 +1968,13 @@ var messages = map[MsgKey]map[Language]string{
 		LangTraditionalChinese: "關閉",
 		LangJapanese:           "OFF",
 		LangSpanish:            "Desactivado",
+	},
+	MsgStatusRunning: {
+		LangEnglish:            "Process: %s\n",
+		LangChinese:            "进程: %s\n",
+		LangTraditionalChinese: "進程: %s\n",
+		LangJapanese:           "プロセス: %s\n",
+		LangSpanish:            "Proceso: %s\n",
 	},
 	MsgModelDefault: {
 		LangEnglish:            "Current model: (not set, using agent default)\n",

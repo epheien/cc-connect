@@ -231,6 +231,13 @@ type PermissionResult struct {
 	Message      string         `json:"message,omitempty"`      // reason for deny
 }
 
+// AgentSessionRunner is an optional interface that indicates the agent session
+// can report whether there is an active process running (e.g., opencode run).
+type AgentSessionRunner interface {
+	// IsRunning returns true if there is an active agent process.
+	IsRunning() bool
+}
+
 // ToolAuthorizer is an optional interface for agents that support dynamic tool authorization.
 type ToolAuthorizer interface {
 	AddAllowedTools(tools ...string) error

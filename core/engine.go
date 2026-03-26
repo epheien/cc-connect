@@ -4206,6 +4206,16 @@ func (e *Engine) renderStatusCard(sessionKey string, userID string) *Card {
 	}
 	sessionStr := e.i18n.Tf(MsgStatusSession, sessionDisplayName, len(s.History))
 
+	// Check if agent session is currently running (for agents like opencode)
+	runningStr := e.i18n.Tf(MsgStatusRunning, "⏸ 待机") // default
+	if hasState && state != nil && state.agentSession != nil {
+		if runner, ok := state.agentSession.(AgentSessionRunner); ok {
+			if runner.IsRunning() {
+				runningStr = e.i18n.Tf(MsgStatusRunning, "✅ 运行中")
+			}
+		}
+	}
+
 	var cronStr string
 	if e.cronScheduler != nil {
 		if jobs := e.cronScheduler.Store().ListBySessionKey(sessionKey); len(jobs) > 0 {
@@ -4234,6 +4244,7 @@ func (e *Engine) renderStatusCard(sessionKey string, userID string) *Card {
 		langStr,
 		modeStr,
 		sessionStr,
+		runningStr,
 		cronStr,
 		sessionKeyStr,
 		userIDStr,

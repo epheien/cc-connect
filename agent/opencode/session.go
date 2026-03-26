@@ -33,6 +33,7 @@ type opencodeSession struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	wg       sync.WaitGroup
+	running  atomic.Int32 // count of active opencode run processes
 	alive    atomic.Bool
 }
 
@@ -135,6 +136,7 @@ func (s *opencodeSession) Send(prompt string, images []core.ImageAttachment, fil
 		return fmt.Errorf("opencodeSession: start: %w", err)
 	}
 
+	s.running.Add(1)
 	s.wg.Add(1)
 	go s.readLoop(cmd, stdout, &stderrBuf)
 
@@ -142,7 +144,10 @@ func (s *opencodeSession) Send(prompt string, images []core.ImageAttachment, fil
 }
 
 func (s *opencodeSession) readLoop(cmd *exec.Cmd, stdout io.ReadCloser, stderrBuf *bytes.Buffer) {
-	defer s.wg.Done()
+	defer func() {
+		s.running.Add(-1)
+		s.wg.Done()
+	}()
 	defer func() {
 		if err := cmd.Wait(); err != nil {
 			stderrMsg := stderrBuf.String()
@@ -407,6 +412,11 @@ func (s *opencodeSession) CurrentSessionID() string {
 
 func (s *opencodeSession) Alive() bool {
 	return s.alive.Load()
+}
+
+// IsRunning returns true if there is an active opencode run process.
+func (s *opencodeSession) IsRunning() bool {
+	return s.running.Load() > 0
 }
 
 func (s *opencodeSession) Close() error {
